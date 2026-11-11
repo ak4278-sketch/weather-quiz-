@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>國小三年級自然【天氣停看聽】互動測驗卷</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Canvas Confetti 彩帶特效庫 -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <!-- Google 字體 Inter & 圓體風格支援 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;600;700;900&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Noto Sans TC', sans-serif;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .bounce-hover:hover {
+      transform: translateY(-3px);
+      transition: all 0.2s ease;
+    }
+    /* 答題選項連線選中狀態 */
+    .match-selected {
+      border-color: #3b82f6 !important;
+      background-color: #dbeafe !important;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.4);
+    }
+    .match-paired {
+      border-color: #10b981 !important;
+      background-color: #d1fae5 !important;
+      color: #065f46 !important;
+      cursor: default;
+    }
+    /* 截圖證明卡片邊框 */
+    .cert-border {
+      border: 4px dashed #60a5fa;
+      background: radial-gradient(circle at top left, #eff6ff, #ffffff);
+    }
+  </style>
+</head>
+<body class="bg-sky-50 text-slate-800 min-h-screen flex flex-col justify-between">
+
+  <!-- 頂部導航列 -->
+  <header class="bg-white/80 backdrop-blur shadow-sm sticky top-0 z-30 border-b border-sky-100">
+    <div class="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="text-3xl">🌤️</span>
+        <div>
+          <h1 class="text-lg md:text-xl font-bold text-sky-800 leading-tight">翰林自然三下：天氣停看聽</h1>
+          <p class="text-xs text-sky-500 font-medium">國小自然科學互動評量專區</p>
+        </div>
+      </div>
+      <button id="homeBtn" onclick="confirmExit()" class="hidden text-xs md:text-sm bg-sky-100 hover:bg-sky-200 text-sky-700 px-3 py-1.5 rounded-full font-bold transition">
+        🏠 回主選單
+      </button>
+    </div>
+  </header>
+
+  <!-- 主內容容器 -->
+  <main class="flex-grow max-w-3xl w-full mx-auto p-4 md:p-6 flex flex-col justify-center">
+
+    <!-- 1. 首頁/主選單 -->
+    <div id="startScreen" class="bg-white rounded-3xl p-6 md:p-8 shadow-xl border-4 border-sky-200 text-center space-y-6">
+      <div class="inline-block p-4 bg-sky-100 rounded-full text-5xl animate-bounce">
+        🌈
+      </div>
+      <div>
+        <h2 class="text-2xl md:text-3xl font-extrabold text-sky-900 tracking-wide">
+          準備好成為「氣象小達人」了嗎？
+        </h2>
+        <p class="text-slate-600 mt-2 text-sm md:text-base">
+          依據自然課本與習作內容精心設計！每回隨機 10 題，滿分 100 分。
+        </p>
+      </div>
+
+      <!-- 學生個人資訊輸入 (便利截圖核對) -->
+      <div class="bg-sky-50/70 p-4 rounded-2xl max-w-md mx-auto space-y-3 border border-sky-200">
+        <label class="block text-left text-sm font-bold text-sky-900">
+          ✏️ 請先輸入你的班級座號與姓名：
+        </label>
+        <div class="grid grid-cols-2 gap-2">
+          <input type="text" id="studentClass" placeholder="例如：三年1班" class="w-full px-3 py-2 border-2 border-sky-200 rounded-xl text-center focus:outline-none focus:border-sky-500 text-sm font-bold bg-white">
+          <input type="text" id="studentName" placeholder="學生姓名" class="w-full px-3 py-2 border-2 border-sky-200 rounded-xl text-center focus:outline-none focus:border-sky-500 text-sm font-bold bg-white">
+        </div>
+      </div>
+
+      <!-- 測驗類別選單 -->
+      <div class="space-y-3 pt-2">
+        <p class="text-sm font-bold text-slate-500">▼ 請點擊你想挑戰的測驗單元 ▼</p>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+          <button onclick="startQuiz('weather_measure')" class="bounce-hover bg-gradient-to-b from-amber-300 to-amber-400 hover:from-amber-400 hover:to-amber-500 text-amber-950 p-4 rounded-2xl shadow-md font-bold text-base md:text-lg flex flex-col items-center gap-1 border-2 border-amber-300">
+            <span class="text-3xl">🌡️</span>
+            <span>1. 天氣與測量</span>
+            <span class="text-xs text-amber-900 font-normal">觀測雲量、氣溫計、雨量器</span>
+          </button>
+          <button onclick="startQuiz('forecast_life')" class="bounce-hover bg-gradient-to-b from-cyan-300 to-cyan-400 hover:from-cyan-400 hover:to-cyan-500 text-cyan-950 p-4 rounded-2xl shadow-md font-bold text-base md:text-lg flex flex-col items-center gap-1 border-2 border-cyan-300">
+            <span class="text-3xl">📺</span>
+            <span>2. 天氣預報與生活</span>
+            <span class="text-xs text-cyan-900 font-normal">氣象預報、降雨機率、AQI</span>
+          </button>
+          <button onclick="startQuiz('comprehensive')" class="bounce-hover bg-gradient-to-b from-indigo-300 to-indigo-400 hover:from-indigo-400 hover:to-indigo-500 text-indigo-950 p-4 rounded-2xl shadow-md font-bold text-base md:text-lg flex flex-col items-center gap-1 border-2 border-indigo-300">
+            <span class="text-3xl">🏆</span>
+            <span>3. 全單元大考驗</span>
+            <span class="text-xs text-indigo-900 font-normal">綜合總複習（含季節植物）</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. 測驗進行畫面 -->
+    <div id="quizScreen" class="hidden space-y-4">
+      <!-- 頂部進度條與得分 -->
+      <div class="bg-white p-4 rounded-2xl shadow-md border border-sky-100 flex items-center justify-between gap-4">
+        <div class="flex items-center gap-2">
+          <span class="font-extrabold text-sky-700 text-base md:text-lg" id="categoryTitle">單元</span>
+          <span id="questionNumBadge" class="bg-sky-100 text-sky-800 text-xs px-2.5 py-1 rounded-full font-bold">第 1/10 題</span>
+        </div>
+        <div class="flex items-center gap-4">
+          <div class="w-28 md:w-44 bg-slate-100 rounded-full h-3 overflow-hidden border border-slate-200">
+            <div id="progressBar" class="bg-sky-500 h-full rounded-full transition-all duration-300" style="width: 10%;"></div>
+          </div>
+          <div class="text-amber-600 font-black text-sm md:text-base">
+            得分: <span id="currentScore" class="text-xl">0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 題目卡片容器 -->
+      <div id="questionContainer" class="bg-white rounded-3xl p-5 md:p-7 shadow-xl border-2 border-sky-100 space-y-5">
+        <!-- 題目內文與提示 -->
+        <div>
+          <div class="flex items-start gap-2">
+            <span id="qTypeBadge" class="inline-block bg-sky-600 text-white text-xs px-2 py-0.5 rounded-md font-bold mt-1">單選題</span>
+            <h3 id="questionText" class="text-lg md:text-xl font-bold text-slate-800 leading-snug">
+              載入題目中...
+            </h3>
+          </div>
+          <div id="questionMedia" class="mt-3 hidden rounded-2xl overflow-hidden max-h-56 flex justify-center bg-sky-50/50 p-2"></div>
+        </div>
+
+        <!-- 作答區：動態注入 (單選按鈕組 或 配對連線區) -->
+        <div id="interactionArea" class="space-y-3"></div>
+
+        <!-- 即時回饋與詳解區 -->
+        <div id="feedbackBox" class="hidden p-4 rounded-2xl text-sm md:text-base border-2 space-y-2">
+          <div id="feedbackStatus" class="font-bold flex items-center gap-1.5 text-base md:text-lg"></div>
+          <p id="feedbackExplain" class="leading-relaxed"></p>
+          <div class="pt-2 text-right">
+            <button id="nextBtn" onclick="nextQuestion()" class="bg-sky-500 hover:bg-sky-600 text-white font-black px-6 py-2.5 rounded-full shadow-lg transition">
+              下一題 ➡️
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. 結束成績畫面 (供截圖上傳) -->
+    <div id="resultScreen" class="hidden space-y-5">
+      <div class="cert-border rounded-3xl p-6 md:p-8 shadow-2xl space-y-5 text-center relative overflow-hidden">
+        <!-- 裝飾背景印章 -->
+        <div class="text-center space-y-1">
+          <span class="text-5xl" id="resultTrophy">🏅</span>
+          <h2 class="text-2xl md:text-3xl font-black text-sky-900">天氣停看聽．測驗評量單</h2>
+          <p class="text-xs md:text-sm text-slate-500">自然與生活科技三下學習成果認證</p>
+        </div>
+
+        <!-- 學生資訊確認卡 -->
+        <div class="bg-white/90 p-4 rounded-2xl shadow-inner border border-sky-200 max-w-md mx-auto grid grid-cols-2 gap-2 text-left">
+          <div class="text-slate-600 text-sm">
+            挑戰單元：<span id="resCategory" class="font-bold text-slate-900">-</span>
+          </div>
+          <div class="text-slate-600 text-sm">
+            作答日期：<span id="resDate" class="font-bold text-slate-900">-</span>
+          </div>
+          <div class="text-slate-600 text-sm">
+            班級座號：<span id="resClass" class="font-bold text-sky-800">未填寫</span>
+          </div>
+          <div class="text-slate-600 text-sm">
+            學生姓名：<span id="resName" class="font-bold text-sky-800">未填寫</span>
+          </div>
+        </div>
+
+        <!-- 最終分數大字 -->
+        <div class="py-2">
+          <div class="text-sm font-bold text-slate-500">本次測驗總得分 (滿分100分)</div>
+          <div class="text-5xl md:text-6xl font-black text-amber-500 mt-1 tracking-tight" id="finalScoreDisplay">
+            0 <span class="text-2xl text-slate-400 font-bold">分</span>
+          </div>
+          <p id="scoreComment" class="mt-2 text-base font-bold text-sky-800">太棒了！</p>
+        </div>
+
+        <!-- 老師指定的指定重要截圖警語 -->
+        <div class="bg-amber-100 border-2 border-amber-300 text-amber-950 p-4 rounded-2xl font-bold text-base md:text-lg flex items-center justify-center gap-2 animate-pulse">
+          <span>📸</span>
+          <span>請將測驗結果截圖並上傳給老師~</span>
+        </div>
+
+        <!-- 答題統計分析清單摘要 -->
+        <div class="text-xs text-slate-400">
+          答對題數：<span id="resCorrectCount">0</span> 題 ｜ 答錯題數：<span id="resWrongCount">0</span> 題
+        </div>
+      </div>
+
+      <!-- 操作按鈕列 -->
+      <div class="flex flex-col sm:flex-row gap-3 justify-center">
+        <button onclick="resetToHome()" class="w-full sm:w-auto bg-sky-500 hover:bg-sky-600 text-white font-bold px-8 py-3 rounded-full shadow-lg transition">
+          🔄 再測驗一次 (換單元)
+        </button>
+        <button onclick="window.print()" class="w-full sm:w-auto bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold px-6 py-3 rounded-full transition">
+          🖨️ 列印 / 另存 PDF
+        </button>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- 頁尾 -->
+  <footer class="text-center py-4 text-xs text-sky-600/70 border-t border-sky-100 bg-white/40">
+    國小翰林版自然三下【天氣停看聽】單元互動測驗卷 ｜ 均一自主學習教材庫
+  </footer>
+
+  <script>
+    /* ========================================================
+       題庫資料庫 (嚴格依照翰林三下課本與習作內容設計)
+    ======================================================== */
+    const QUESTION_BANK = {
+      // 1. 天氣與測量 (3-1 觀測天氣、氣溫計、雨量器)
+      weather_measure: [
+        {
+          type: "choice",
+          question: "當我們抬頭仰望天空，發現「全天空的雲量少於一半，可以看到大部分的藍天與太陽」，這屬於哪種天氣狀況？",
+          options: ["晴天", "多雲", "陰天", "雨天"],
+          answer: 0,
+          explain: "課本指出：全天空雲量少於一半為「晴天」；一半到幾乎都是雲為「多雲」；幾乎蓋滿整個天空、看不到太陽則為「陰天」。"
+        },
+        {
+          type: "choice",
+          question: "用氣溫計測量氣溫時，哪一個讀取刻度的方法才是正確的？",
+          options: [
+            "眼睛平視液柱的頂端",
+            "手握住最下方的球狀液囊",
+            "對著氣溫計吹熱氣看看變化",
+            "站在太陽直射的操場中央讀取"
+          ],
+          answer: 0,
+          explain: "讀取氣溫時眼睛要「平視」液柱頂端。手不可觸摸球狀液囊、不可對它吹氣，且需在通風陰涼處測量避免陽光直射。"
+        },
+        {
+          type: "choice",
+          question: "想自己動手製作簡易雨量器，應該挑選哪一種形狀的透明容器？",
+          options: [
+            "平底直筒的容器 (上下粗細一致)",
+            "上寬下窄的透明高腳杯",
+            "上窄下寬的三角形錐形瓶",
+            "底部凹凸不平的寶特瓶底部"
+          ],
+          answer: 0,
+          explain: "課本與習作實驗驗證：只有「平底直筒」的容器，收集到的雨水高度才能正確代表降雨量（雨量單位為毫米 mm）。"
+        },
+        {
+          type: "choice",
+          question: "學校氣象觀測時，通常會把氣溫計放在什麼設備裡面測量氣溫？",
+          options: ["百寶箱", "百葉箱", "烤箱", "冰箱"],
+          answer: 1,
+          explain: "氣象觀測通常會在室外空曠處設置「百葉箱」，裡面通風又不會被陽光直射，將氣溫計置於其中離地面約125~200公分處。"
+        },
+        {
+          type: "choice",
+          question: "用直尺測量雨量器內的水位高度時，尺的「0刻度」應該對準哪裡？",
+          options: [
+            "對準容器底部 (水位的最低處底部)",
+            "對準桌子的邊緣",
+            "隨便放在水面中央即可",
+            "對準容器的最頂端"
+          ],
+          answer: 0,
+          explain: "用直尺測量雨水高度時，直尺0刻度要對準容器內水位的底部，讀取時眼睛也要平視水面最低處。"
+        },
+        {
+          type: "choice",
+          question: "一天當中的氣溫通常會如何變化？（晴天正常作息下）",
+          options: [
+            "清晨較涼，中午氣溫較高，傍晚後又逐漸下降",
+            "中午最冷，半夜十二點最熱",
+            "一整天24小時溫度完全不會變",
+            "下午三點一定比中午十二點高出十度"
+          ],
+          answer: 0,
+          explain: "一天中的氣溫是有變化的：在晴天時，通常早上氣溫逐漸上升，中午前後氣溫最高，午後到晚上逐漸下降。"
+        },
+        {
+          type: "match",
+          question: "【連連看配對題】請依據習作 P34 內容，將天空的「景象描述」與對應的「天氣名稱」配對：",
+          pairs: [
+            { left: "雲很少，可看見大部分藍天", right: "晴天" },
+            { left: "雲比較多，但未遮住全天空", right: "多雲" },
+            { left: "雲很多有點灰灰，遮住全天空", right: "陰天" },
+            { left: "雲是灰黑色的，且正在降雨", right: "雨天" }
+          ],
+          explain: "雲量少於一半是晴天，雲較多但未全遮是多雲，全遮蔽是陰天，灰黑雲層伴隨降水則是雨天。"
+        },
+        {
+          type: "choice",
+          question: "小明想測量校園氣溫，他應該把氣溫計拿到哪一個地點最合適？",
+          options: [
+            "通風良好的樹蔭下或走廊",
+            "大太陽直射的跑道正中央",
+            "密閉無風的置物櫃裡",
+            "熱水飲水機出風口旁"
+          ],
+          answer: 0,
+          explain: "測量氣溫必須選擇「空氣流通」且「沒有陽光直接照射」的地點，例如樹蔭下或通風走廊。"
+        },
+        {
+          type: "choice",
+          question: "中央氣象署規範中，氣溫是指離地面大約多高處的空氣溫度？",
+          options: ["125～200公分", "10～20公分", "500～600公分", "1～2公分"],
+          answer: 0,
+          explain: "課本小知識：氣溫是指距離地面約 125～200 公分處、陰涼通風環境測得的空氣溫度。"
+        },
+        {
+          type: "choice",
+          question: "氣溫計上常見「℃」和「℉」兩種符號，在臺灣氣象報導最主要使用的溫度單位是？",
+          options: ["攝氏（℃）", "華氏（℉）", "公分（cm）", "毫米（mm）"],
+          answer: 0,
+          explain: "臺灣主要使用「攝氏（℃）」來表示氣溫；雨量則是用「毫米（mm）」為單位。"
+        }
+      ],
+
+      // 2. 天氣預報與生活 (3-2 氣象預報、降雨機率、生活因應)
+      forecast_life: [
+        {
+          type: "choice",
+          question: "如果氣象預報顯示明天的「降雨機率是 80%」，代表什麼意思？",
+          options: [
+            "明天下雨的機會非常高，出門最好攜帶雨具",
+            "明天只會下80滴雨",
+            "明天氣溫一定是80度",
+            "明天有80分鐘出大太陽"
+          ],
+          answer: 0,
+          explain: "降雨機率代表下雨的可能性大小，數字愈大表示愈容易下雨。80%表示降雨機率極高，應攜帶雨具。"
+        },
+        {
+          type: "choice",
+          question: "下列哪一種管道「沒辦法」用來查詢或知道最新氣象預報？",
+          options: [
+            "翻閱去年的農民曆或舊故事書",
+            "撥打 166 或 167 氣象語音專線",
+            "瀏覽中央氣象署官方網站或手機APP",
+            "收看電視新聞氣象報導或收聽廣播"
+          ],
+          answer: 0,
+          explain: "去年的舊書不是最新氣象預報。電視、廣播、網路、氣象APP及撥打166/167才是查詢即時與未來預報的方法。"
+        },
+        {
+          type: "choice",
+          question: "週末全家計畫去「野餐、晒被子」，遇到哪種天氣狀況最適合？",
+          options: [
+            "陽光充足的晴天或舒適多雲",
+            "連日大雷雨的陰雨天",
+            "發布海上陸上颱風警報的天氣",
+            "寒流來襲且狂風大作時"
+          ],
+          answer: 0,
+          explain: "晴天適合洗晒衣物、戶外活動；雨天較適合進行室內活動（如看書、整理房間）。"
+        },
+        {
+          type: "choice",
+          question: "空氣品質指標的英文簡稱為何？當指數過高危害健康時，教育部規定學校應採取防護措施。",
+          options: ["AQI", "IQ", "SOS", "USB"],
+          answer: 0,
+          explain: "環境部採用的空氣品質指標為「AQI」。數值越高代表空氣汙染越嚴重，對人體健康越不利。"
+        },
+        {
+          type: "choice",
+          question: "氣象預報圖示中，如果看到一顆太陽旁邊飄著一朵雲，通常表示的天氣狀況是？",
+          options: ["多雲時晴 / 晴時多雲", "連日豪大雨", "下大雪", "打雷暴風雨"],
+          answer: 0,
+          explain: "太陽配上白雲通常代表「多雲」或「晴時多雲」；雨傘或雨滴代表降雨；太陽光芒四射代表晴天。"
+        },
+        {
+          type: "match",
+          question: "【生活情境配對題】請將「天氣狀況或指數」與最適當的「生活應對方法」進行配對：",
+          pairs: [
+            { left: "夏天烈日高照、紫外線強", right: "戴帽子並塗抹防曬乳" },
+            { left: "氣象預報降雨機率 70%", right: "出門隨身攜帶雨傘雨衣" },
+            { left: "氣溫降至 14℃ 寒冷天氣", right: "多穿保暖大衣防受寒" },
+            { left: "AQI 指數大於 150 不健康", right: "減少在戶外劇烈運動戴口罩" }
+          ],
+          explain: "因應晴天防曬、雨天備傘、低溫保暖、空汙嚴重時戴口罩並避免戶外劇烈跑步。"
+        },
+        {
+          type: "choice",
+          question: "依據氣象署預報，某地「今日白天氣溫 25°C～32°C」，其中的 25°C 和 32°C 分別代表什麼？",
+          options: [
+            "25°C是該時段最低溫，32°C是該時段最高溫",
+            "25°C是雨量，32°C是濕度",
+            "25°C是昨天的溫度，32°C是明天的溫度",
+            "25°C表示冷氣設定，32°C表示體溫"
+          ],
+          answer: 0,
+          explain: "天氣預報中的氣溫區間（例如 25～32°C），前者代表預測「最低氣溫」，後者代表預測「最高氣溫」。"
+        },
+        {
+          type: "choice",
+          question: "小華星期天要去戶外放風箏，出門前他應該特別注意氣象預報中的哪些項目？",
+          options: [
+            "天氣狀況、降雨機率與風力大小",
+            "當天電影院的場次時間",
+            "隔週的歷史考試日期",
+            "外國某都市的下雪狀況"
+          ],
+          answer: 0,
+          explain: "放風箏應避開下雨、打雷及風力過強或無風的天氣，因此要查詢當地的天氣狀況、降雨機率與風速。"
+        },
+        {
+          type: "choice",
+          question: "出門在外突然遇到傾盆大雨，此時走在路上應該注意什麼以策安全？",
+          options: [
+            "經過低窪容易積水處要特別小心，避免涉險",
+            "跑到大樹底下避雷雨",
+            "立刻把雨傘丟掉在路上奔跑",
+            "停在路邊水窪玩水不用看車"
+          ],
+          answer: 0,
+          explain: "大雨時低窪處容易淹水，應避開危險積水路段，行經路口注意車輛濺水，絕不可在大樹下躲避雷雨以防雷擊。"
+        },
+        {
+          type: "choice",
+          question: "想要了解「下星期未來整整一週」的天氣大略趨勢，查詢哪種氣象預報最合適？",
+          options: ["一週天氣預報", "時雨量即時監測", "地震速報", "潮汐預報"],
+          answer: 0,
+          explain: "中央氣象署提供的「一週天氣預報」，能提供臺灣各地未來七天內白天與晚上的氣溫與天氣趨勢。"
+        }
+      ],
+
+      // 3. 全單元大考驗 (綜合 3-1, 3-2 及 3-3 季節與生活)
+      comprehensive: [
+        {
+          type: "choice",
+          question: "臺灣每年五、六月常常陰雨綿綿、物品容易發霉，此時正好也是某種水果成熟期，所以被稱為什麼？",
+          options: ["梅雨季", "西瓜季", "芒果季", "草莓季"],
+          answer: 0,
+          explain: "每年五、六月間持續連綿的陰雨天氣稱為「梅雨」，因為正好是梅子成熟的季節，又因潮濕常被戲稱霉雨。"
+        },
+        {
+          type: "choice",
+          question: "關於臺中市或臺灣西部一年中各月份的平均氣溫變化規律，下列哪一項敘述正確？",
+          options: [
+            "通常一月氣溫最低，七月氣溫最高",
+            "通常十二月氣溫最高，六月氣溫最低",
+            "每個月的平均氣溫都完全相同",
+            "夏天一月最熱、冬天七月會下雪"
+          ],
+          answer: 0,
+          explain: "臺灣位於北半球，一年之中通常「一月」平均氣溫最低，之後逐漸上升至「七月」達到最高，接著再逐漸下降。"
+        },
+        {
+          type: "choice",
+          question: "觀察校園裡的「木棉樹」，春天來臨時它最先展現的外觀特色是什麼？",
+          options: [
+            "先長滿整樹厚厚的橙紅色花朵，之後才長出嫩葉",
+            "樹葉全都枯黃落光，開始冬眠",
+            "長出滿滿的白色棉絮隨風飄散",
+            "直接結出黑色的木棉種子"
+          ],
+          answer: 0,
+          explain: "木棉樹非常特別，春天時會先開出滿樹橙紅色的美麗花朵，花謝後才會萌發出翠綠的新葉。"
+        },
+        {
+          type: "choice",
+          question: "雨量的大小是用什麼當作測量標準？",
+          options: [
+            "一定時間內，雨量器累積的水位高度 (單位:毫米 mm)",
+            "雨滴落在臉上的痛感大小",
+            "雨聲聽起來有多大聲",
+            "地上的水窪有幾公分長"
+          ],
+          answer: 0,
+          explain: "氣象觀測上，降雨大小不是看雨滴大小或聲音，而是看平底直筒雨量器在一定時間內累積的「水位高度（毫米 mm）」。"
+        },
+        {
+          type: "match",
+          question: "【季節與大自然連連看】請將「四季名稱」與課本介紹的「常見自然植物景象」正確連線：",
+          pairs: [
+            { left: "春季", right: "櫻花、桃花盛開，木棉開橙紅花" },
+            { left: "夏季", right: "荷花盛開、芒果盛產、木棉綠葉茂密" },
+            { left: "秋季", right: "楓葉轉紅、柚子成熟、木棉葉枯黃" },
+            { left: "冬季", right: "梅花在寒冬綻放、木棉落葉剩下枝幹" }
+          ],
+          explain: "四季遞嬗有規律的美景：春櫻夏荷、秋楓冬梅，木棉也是春花、夏綠、秋黃、冬落葉。"
+        },
+        {
+          type: "choice",
+          question: "下列三位小朋友測量氣溫的動作，誰的做法是【錯誤】的？",
+          options: [
+            "小真：為了看清楚，整隻手緊緊握住氣溫計下方的紅色液囊",
+            "小凱：在通風的大樹陰涼處測量",
+            "阿明：眼睛視線與紅色液柱的頂端保持水平平視",
+            "小美：避免對著氣溫計講話吹氣"
+          ],
+          answer: 0,
+          explain: "手有體溫，如果碰觸或緊握球狀液囊，會導致測出來的溫度失真偏高，所以小真的做法是錯誤的。"
+        },
+        {
+          type: "choice",
+          question: "臺灣降雨在時間與空間分布不均，河川短急蓄水不易，因此我們在生活中應該養成什麼好習慣？",
+          options: ["節約用水、珍惜水資源", "多浪費水來洗地板", "不需要關緊水龍頭", "雨季就不用儲水備用"],
+          answer: 0,
+          explain: "臺灣屬於全球容易缺水的地區，冬季為多數地區的枯水期，因此每個人平時都要愛惜並節約水資源。"
+        },
+        {
+          type: "choice",
+          question: "小傑準備和家人出門，看到窗外天空「一大片灰灰黑黑的烏雲，天色漸漸變暗，還颳起了強風」，這最可能是什麼徵兆？",
+          options: ["快要下雷陣雨了，要趕快收衣服和帶傘", "馬上要出大烈日了，要抹防曬", "冬天要來下雪了", "代表今天一整天都不會下雨"],
+          answer: 0,
+          explain: "天色變暗、厚厚烏雲聚集且起風，通常是即將下雨或雷陣雨的前兆，應儘快收衣服並準備雨具。"
+        },
+        {
+          type: "choice",
+          question: "下列關於氣溫計構造的敘述，哪一項是正確的？",
+          options: [
+            "裡面的液體通常會隨溫度熱脹冷縮升降，藉此指示溫度",
+            "氣溫計一定要用鐵鎚敲一敲才能顯示度數",
+            "氣溫計刻度越往下代表溫度越高",
+            "氣溫計只能拿來量沸水的溫度"
+          ],
+          answer: 0,
+          explain: "氣溫計主要是玻璃管內裝有遇熱膨脹、遇冷收縮的液體，透過液柱高低來判讀環境空氣溫度。"
+        },
+        {
+          type: "choice",
+          question: "為什麼我們需要關心天氣預報與季節變化？",
+          options: [
+            "能方便我們挑選適當的衣著穿戴，並為各項活動做最好的準備",
+            "只是為了好玩，對生活沒有任何影響",
+            "看完預報就能用超能力改變天氣",
+            "因為天氣每天每小時都完全一模一樣"
+          ],
+          answer: 0,
+          explain: "掌握天氣與季節資訊，能幫助我們安排合適的日常作息、活動規劃、出行裝備與穿著防護。"
+        }
+      ]
+    };
+
+    /* ========================================================
+       測驗運行狀態 (State)
+    ======================================================== */
+    let currentQuizPool = [];
+    let currentQIndex = 0;
+    let score = 0;
+    let studentClass = "";
+    let studentName = "";
+    let activeCategoryName = "";
+    let answeredCurrent = false;
+
+    // 配對題專用暫存狀態
+    let matchSelectedLeft = null;
+    let matchPairsState = {};
+
+    /* 工具：隨機打亂陣列 */
+    function shuffleArray(arr) {
+      const cloned = [...arr];
+      for (let i = cloned.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [cloned[i], cloned[j]] = [cloned[j], cloned[i]];
+      }
+      return cloned;
+    }
+
+    /* 啟動測驗 */
+    function startQuiz(categoryKey) {
+      const classInput = document.getElementById("studentClass").value.trim();
+      const nameInput = document.getElementById("studentName").value.trim();
+      
+      studentClass = classInput || "三年級學生";
+      studentName = nameInput || "自然小探險家";
+
+      const catMap = {
+        weather_measure: "天氣與測量",
+        forecast_life: "天氣預報與生活",
+        comprehensive: "全單元大考驗"
+      };
+      activeCategoryName = catMap[categoryKey];
+
+      // 從該題庫中隨機抽取 10 題
+      const fullPool = QUESTION_BANK[categoryKey];
+      currentQuizPool = shuffleArray(fullPool).slice(0, 10);
+      currentQIndex = 0;
+      score = 0;
+
+      // 切換視圖
+      document.getElementById("startScreen").classList.add("hidden");
+      document.getElementById("resultScreen").classList.add("hidden");
+      document.getElementById("quizScreen").classList.remove("hidden");
+      document.getElementById("homeBtn").classList.remove("hidden");
+
+      document.getElementById("categoryTitle").textContent = activeCategoryName;
+      updateScoreUI();
+      renderCurrentQuestion();
+    }
+
+    /* 更新分數與進度條 */
+    function updateScoreUI() {
+      document.getElementById("currentScore").textContent = score;
+      document.getElementById("questionNumBadge").textContent = `第 ${currentQIndex + 1} / 10 題`;
+      const progressPercent = ((currentQIndex + 1) / 10) * 100;
+      document.getElementById("progressBar").style.width = `${progressPercent}%`;
+    }
+
+    /* 渲染當前題目 */
+    function renderCurrentQuestion() {
+      answeredCurrent = false;
+      const q = currentQuizPool[currentQIndex];
+
+      // 隱藏回饋框
+      const feedbackBox = document.getElementById("feedbackBox");
+      feedbackBox.classList.add("hidden");
+      feedbackBox.className = "hidden p-4 rounded-2xl text-sm md:text-base border-2 space-y-2";
+
+      // 題型徽章與題目
+      const qTypeBadge = document.getElementById("qTypeBadge");
+      const questionText = document.getElementById("questionText");
+      const interactionArea = document.getElementById("interactionArea");
+      interactionArea.innerHTML = "";
+
+      if (q.type === "choice") {
+        qTypeBadge.textContent = "單選題 (10分)";
+        qTypeBadge.className = "inline-block bg-sky-600 text-white text-xs px-2.5 py-1 rounded-full font-bold";
+        questionText.textContent = `${currentQIndex + 1}. ${q.question}`;
+
+        // 建立單選選項
+        q.options.forEach((opt, idx) => {
+          const btn = document.createElement("button");
+          btn.className = "w-full text-left p-3.5 md:p-4 rounded-2xl border-2 border-slate-200 bg-slate-50 hover:bg-sky-50 hover:border-sky-300 font-medium text-slate-800 transition flex items-center gap-3";
+          btn.innerHTML = `
+            <span class="w-7 h-7 flex-shrink-0 rounded-full bg-white border border-slate-300 flex items-center justify-center font-bold text-xs text-sky-800 shadow-sm">
+              ${['A', 'B', 'C', 'D'][idx]}
+            </span>
+            <span class="text-sm md:text-base">${opt}</span>
+          `;
+          btn.onclick = () => handleChoiceAnswer(idx, btn);
+          interactionArea.appendChild(btn);
+        });
+
+      } else if (q.type === "match") {
+        qTypeBadge.textContent = "連連看配對題 (10分)";
+        qTypeBadge.className = "inline-block bg-purple-600 text-white text-xs px-2.5 py-1 rounded-full font-bold";
+        questionText.textContent = `${currentQIndex + 1}. ${q.question}`;
+
+        renderMatchQuestion(q);
+      }
+    }
+
+    /* 處理單選題回答 */
+    function handleChoiceAnswer(selectedIdx, clickedBtn) {
+      if (answeredCurrent) return;
+      answeredCurrent = true;
+
+      const q = currentQuizPool[currentQIndex];
+      const isCorrect = (selectedIdx === q.answer);
+      const allButtons = document.getElementById("interactionArea").querySelectorAll("button");
+
+      allButtons.forEach((btn, idx) => {
+        btn.disabled = true;
+        if (idx === q.answer) {
+          btn.classList.add("bg-emerald-100", "border-emerald-500", "text-emerald-950", "font-bold");
+        }
+      });
+
+      if (isCorrect) {
+        score += 10;
+        showFeedback(true, "答對了！太厲害了 🎉", q.explain);
+      } else {
+        clickedBtn.classList.add("bg-rose-100", "border-rose-400", "text-rose-950");
+        showFeedback(false, "哎呀！答錯囉～ 💡 看解析學知識：", q.explain);
+      }
+      updateScoreUI();
+    }
+
+    /* 建立配對/連連看題互動畫面 */
+    function renderMatchQuestion(q) {
+      const interactionArea = document.getElementById("interactionArea");
+      interactionArea.innerHTML = `
+        <div class="bg-purple-50 p-3 rounded-xl border border-purple-200 text-xs text-purple-900 mb-2">
+          👉 <strong>玩法說明：</strong> 先點擊左邊的【描述】，再點擊右邊對應的【名稱】進行配對！
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div class="space-y-2" id="matchLeftCol"></div>
+          <div class="space-y-2" id="matchRightCol"></div>
+        </div>
+      `;
+
+      matchSelectedLeft = null;
+      matchPairsState = {};
+
+      const leftCol = document.getElementById("matchLeftCol");
+      const rightCol = document.getElementById("matchRightCol");
+
+      // 保持左邊題目順序，打亂右邊答案選項
+      const leftItems = q.pairs.map((p, i) => ({ text: p.left, id: i }));
+      const rightItems = shuffleArray(q.pairs.map((p, i) => ({ text: p.right, id: i })));
+
+      leftItems.forEach(item => {
+        const btn = document.createElement("button");
+        btn.id = `leftItem-${item.id}`;
+        btn.className = "w-full text-left p-3 rounded-xl border-2 border-slate-200 bg-white hover:border-purple-300 text-xs md:text-sm font-semibold transition";
+        btn.textContent = item.text;
+        btn.onclick = () => selectMatchLeft(item.id, btn);
+        leftCol.appendChild(btn);
+      });
+
+      rightItems.forEach(item => {
+        const btn = document.createElement("button");
+        btn.id = `rightItem-${item.id}`;
+        btn.className = "w-full text-center p-3 rounded-xl border-2 border-slate-200 bg-white hover:border-purple-300 text-xs md:text-sm font-bold transition";
+        btn.textContent = item.text;
+        btn.onclick = () => selectMatchRight(item.id, btn, q);
+        rightCol.appendChild(btn);
+      });
+    }
+
+    function selectMatchLeft(id, btn) {
+      if (answeredCurrent || matchPairsState[id] !== undefined) return;
+
+      // 清除其他已選左側狀態
+      document.querySelectorAll("#matchLeftCol button").forEach(b => {
+        if (!b.classList.contains("match-paired")) {
+          b.classList.remove("match-selected");
+        }
+      });
+
+      matchSelectedLeft = id;
+      btn.classList.add("match-selected");
+    }
+
+    function selectMatchRight(rightId, rightBtn, q) {
+      if (answeredCurrent || matchSelectedLeft === null) return;
+
+      const leftId = matchSelectedLeft;
+      const leftBtn = document.getElementById(`leftItem-${leftId}`);
+
+      // 記錄配對
+      matchPairsState[leftId] = rightId;
+
+      leftBtn.classList.remove("match-selected");
+      leftBtn.classList.add("match-paired");
+      rightBtn.classList.add("match-paired");
+
+      leftBtn.disabled = true;
+      rightBtn.disabled = true;
+
+      matchSelectedLeft = null;
+
+      // 檢查是否全部配對完成
+      if (Object.keys(matchPairsState).length === q.pairs.length) {
+        answeredCurrent = true;
+        // 驗證是否全對
+        let allCorrect = true;
+        for (let i = 0; i < q.pairs.length; i++) {
+          if (matchPairsState[i] !== i) {
+            allCorrect = false;
+            break;
+          }
+        }
+
+        if (allCorrect) {
+          score += 10;
+          showFeedback(true, "配對全對！太神了 🌟", q.explain);
+        } else {
+          showFeedback(false, "配對中有部分錯誤喔！💡 請看正確解析：", q.explain);
+        }
+        updateScoreUI();
+      }
+    }
+
+    /* 顯示即時教學解析 */
+    function showFeedback(isCorrect, title, explainText) {
+      const box = document.getElementById("feedbackBox");
+      const status = document.getElementById("feedbackStatus");
+      const explain = document.getElementById("feedbackExplain");
+
+      box.classList.remove("hidden");
+      if (isCorrect) {
+        box.className = "p-4 rounded-2xl text-sm md:text-base border-2 space-y-2 bg-emerald-50 border-emerald-300 text-emerald-950";
+        status.innerHTML = `<span>✅</span> <span>${title}</span>`;
+      } else {
+        box.className = "p-4 rounded-2xl text-sm md:text-base border-2 space-y-2 bg-rose-50 border-rose-300 text-rose-950";
+        status.innerHTML = `<span>❌</span> <span>${title}</span>`;
+      }
+
+      explain.textContent = explainText;
+
+      // 如果是最後一題，改按鈕字樣
+      const nextBtn = document.getElementById("nextBtn");
+      if (currentQIndex === 9) {
+        nextBtn.textContent = "查看測驗成績 🏆";
+      } else {
+        nextBtn.textContent = "下一題 ➡️";
+      }
+
+      // 自動平滑捲動到解析區
+      box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    /* 下一題邏輯 */
+    function nextQuestion() {
+      if (currentQIndex < 9) {
+        currentQIndex++;
+        updateScoreUI();
+        renderCurrentQuestion();
+      } else {
+        showResults();
+      }
+    }
+
+    /* 顯示結算畫面 & 彩帶特效 */
+    function showResults() {
+      document.getElementById("quizScreen").classList.add("hidden");
+      document.getElementById("resultScreen").classList.remove("hidden");
+      document.getElementById("homeBtn").classList.add("hidden");
+
+      // 填入學生資訊
+      document.getElementById("resCategory").textContent = activeCategoryName;
+      document.getElementById("resClass").textContent = studentClass;
+      document.getElementById("resName").textContent = studentName;
+
+      const now = new Date();
+      const dateStr = `${now.getFullYear()}/${now.getMonth() + 1}/${now.getDate()}`;
+      document.getElementById("resDate").textContent = dateStr;
+
+      // 分數與題數
+      document.getElementById("finalScoreDisplay").innerHTML = `${score} <span class="text-2xl text-slate-400 font-bold">分</span>`;
+      const correctCount = score / 10;
+      document.getElementById("resCorrectCount").textContent = correctCount;
+      document.getElementById("resWrongCount").textContent = 10 - correctCount;
+
+      const commentElem = document.getElementById("scoreComment");
+      const trophyElem = document.getElementById("resultTrophy");
+
+      if (score === 100) {
+        trophyElem.textContent = "🌟";
+        commentElem.textContent = "🎉 太不可思議了！滿分 100 分！你是氣象特優小博士！";
+        commentElem.className = "mt-2 text-lg font-black text-emerald-600";
+        triggerFullConfetti();
+      } else if (score >= 80) {
+        trophyElem.textContent = "👏";
+        commentElem.textContent = "👍 表現非常優秀！掌握了大部分的天氣觀測觀念喔！";
+        commentElem.className = "mt-2 text-base font-bold text-sky-700";
+      } else if (score >= 60) {
+        trophyElem.textContent = "💪";
+        commentElem.textContent = "再多複習課本的氣溫計和雨量器，下次一定會更厲害！";
+        commentElem.className = "mt-2 text-base font-bold text-amber-700";
+      } else {
+        trophyElem.textContent = "🌱";
+        commentElem.textContent = "別灰心，跟著課本重新翻閱一次，再挑戰一次吧！";
+        commentElem.className = "mt-2 text-base font-bold text-slate-600";
+      }
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    /* 滿分 100 分彩色彩帶特效 (Canvas Confetti) */
+    function triggerFullConfetti() {
+      if (typeof confetti === 'function') {
+        const duration = 4 * 1000;
+        const animationEnd = Date.now() + duration;
+        const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 100 };
+
+        function randomInRange(min, max) {
+          return Math.random() * (max - min) + min;
+        }
+
+        const interval = setInterval(function() {
+          const timeLeft = animationEnd - Date.now();
+          if (timeLeft <= 0) {
+            return clearInterval(interval);
+          }
+          const particleCount = 50 * (timeLeft / duration);
+          confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.1, 0.4), y: Math.random() - 0.2 } }));
+          confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.6, 0.9), y: Math.random() - 0.2 } }));
+        }, 250);
+      }
+    }
+
+    /* 回到主選單確認 */
+    function confirmExit() {
+      if (confirm("測驗尚未結束，確定要回主選單嗎？目前的進度將不會被保存喔！")) {
+        resetToHome();
+      }
+    }
+
+    /* 重設回首頁 */
+    function resetToHome() {
+      document.getElementById("quizScreen").classList.add("hidden");
+      document.getElementById("resultScreen").classList.add("hidden");
+      document.getElementById("startScreen").classList.remove("hidden");
+      document.getElementById("homeBtn").classList.add("hidden");
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  </script>
+</body>
+</html>
